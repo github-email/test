@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://code.alibabatech.com/schema/dubbo
+       http://code.alibabatech.com/schema/dubbo/dubbo.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+    <!--任务策略-->
+    <bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <!--任务触发时调用的目标对象 targetObject-->
+        <!--任务触发时调用的bean对象-->
+        <property name="targetObject" ref="cleanImgsCase"/>
+        <!--任务触发时调用targetObject的bean的方法-->
+        <property name="targetMethod" value="cleanImgs"/>
+        <!--并发 concurrent=false 单线程
+        true: 在规定的周期内任务没完成时，又触发新的任务，属于同一任务时。使用多线程来处理任务-->
+        <!--是否并发任务 false同步执行-->
+        <property name="concurrent" value="true"/>
+    </bean>
+
+    <!--触发器-->
+    <bean id="trigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <!--七子表达式:秒、分、时、日、月、周、年-->
+        <property name="cronExpression" value="0/30 * * * * ?"/>
+        <!--触发任务调度策略-->
+        <property name="jobDetail" ref="jobDetail"/>
+    </bean>
+    <!--调度容器-->
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="trigger"/>
+            </list>
+        </property>
+    </bean>
+
+    <!--dubbo-->
+    <!--应用的名称-->
+    <dubbo:application name="health_jobs_clearImgs"/>
+    <!--注册中心在哪-->
+    <dubbo:registry address="zookeeper://127.0.0.1:2181"/>
+    <!--注解的包扫描-->
+    <dubbo:annotation package="com.itheima.jop"/>
+
+    <!--扫包 (注册任务类)-->
+    <context:component-scan base-package="com.itheima.jop"/>
+
+    <!--导入freemarker配置-->
+    <import resource="classpath:spring-freemarker.xml"/>
+    <!--导入redis配置-->
+    <import resource="classpath:spring-redis.xml"/>
+
+    <!--开启注解支持-->
+    <task:annotation-driven/>
+
+    <!--任务调度线程池-->
+    <bean class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler"/>
+</beans>

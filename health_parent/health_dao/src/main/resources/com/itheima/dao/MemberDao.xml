@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itheima.dao.MemberDao">
+    <!--根据id查询会员-->
+    <select id="findByTelephone" parameterType="string" resultType="member">
+        select * from t_member where phoneNumber = #{phoneNumber}
+    </select>
+
+    <!--新增会员-->
+    <insert id="add" parameterType="member">
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into t_member(fileNumber,name,sex,idCard,phoneNumber,regTime,password,email,birthday,remark)
+        values (#{fileNumber},#{name},#{sex},#{idCard},#{phoneNumber},#{regTime},#{password},#{email},#{birthday},#{remark})
+    </insert>
+
+    <!--根据条件查询
+    <select id="selectByCondition" parameterType="string" resultType="member">
+        select * from t_member
+        <if test="value != null and value.length > 0">
+            where fileNumber = #{value} or phoneNumber = #{value} or name = #{value}
+        </if>
+    </select>-->
+</mapper>
